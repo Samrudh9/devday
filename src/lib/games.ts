@@ -1,4 +1,8 @@
-import { eq, asc } from 'drizzle-orm';
+/**
+ * Data-access helpers for retrieving games and related metadata from SQLite.
+ */
+
+import { and, asc, eq, ne } from 'drizzle-orm';
 import type { Database } from './db';
 import { games, categories, publishers } from '../../db/schema';
 import type { Game } from '../types/game';
@@ -66,4 +70,25 @@ export async function getAllGameIds(db: Database): Promise<number[]> {
 export async function getGameById(db: Database, id: number): Promise<Game | null> {
     const row = await baseGamesQuery(db).where(eq(games.id, id)).get();
     return row ? mapGame(row) : null;
+}
+
+/**
+ * Other games in the same category as the given game, excluding that game.
+ */
+export async function getRelatedGames(db: Database, id: number): Promise<Game[]> {
+    const gameRow = await db
+        .select({ categoryId: games.categoryId })
+        .from(games)
+        .where(eq(games.id, id))
+        .get();
+
+    if (!gameRow || gameRow.categoryId === null) {
+        return [];
+    }
+
+    const rows = await baseGamesQuery(db)
+        .where(and(eq(games.categoryId, gameRow.categoryId), ne(games.id, id)))
+        .orderBy(asc(games.title));
+
+    return rows.map(mapGame);
 }
