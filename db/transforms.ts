@@ -95,14 +95,32 @@ export function parseGamesCsv(content: string): GameCsvRow[] {
         }));
 }
 
+/**
+ * Build the stock description text for a category row.
+ *
+ * @param name - Category name from the CSV row.
+ * @returns A consistent category description sentence.
+ */
 export function categoryDescription(name: string): string {
     return `Collection of ${name} games available for crowdfunding`;
 }
 
+/**
+ * Build the stock description text for a publisher row.
+ *
+ * @param name - Publisher name from the CSV row.
+ * @returns A consistent publisher description sentence.
+ */
 export function publisherDescription(name: string): string {
     return `${name} is a game publisher seeking funding for exciting new titles`;
 }
 
+/**
+ * Append the fixed crowdfunding call-to-action to a game's source description.
+ *
+ * @param rawDescription - Base description from the CSV row.
+ * @returns The stored description including the crowdfunding blurb.
+ */
 export function gameDescription(rawDescription: string): string {
     return rawDescription + CROWDFUNDING_BLURB;
 }
