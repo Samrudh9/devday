@@ -1,14 +1,19 @@
 ---
+/**
+ * Static game details page with category-based related-game recommendations.
+ */
+
 import type { GetStaticPaths } from 'astro';
 import Layout from '../../layouts/Layout.astro';
 import StarRating from '../../components/StarRating.astro';
 import Tag from '../../components/Tag.astro';
 import Card from '../../components/Card.astro';
 import Button from '../../components/Button.astro';
+import EmptyState from '../../components/EmptyState.astro';
 import ArrowLeft from '../../assets/icons/arrow-left.svg';
 import Heart from '../../assets/icons/heart.svg';
 import { getDatabase } from '../../lib/db';
-import { getAllGameIds, getGameById } from '../../lib/games';
+import { getAllGameIds, getGameById, getRelatedGames } from '../../lib/games';
 
 export const prerender = true;
 
@@ -18,11 +23,14 @@ export const getStaticPaths = (async () => {
 }) satisfies GetStaticPaths;
 
 const { id } = Astro.params;
-const game = await getGameById(getDatabase(), Number(id));
+const database = getDatabase();
+const game = await getGameById(database, Number(id));
 
 if (!game) {
     return Astro.redirect('/404');
 }
+
+const relatedGames = await getRelatedGames(database, game.id);
 ---
 
 <Layout title="Game Details - Tailspin Toys">
@@ -53,6 +61,27 @@ if (!game) {
           <div class="text-slate-400 space-y-4">
             <p data-testid="game-details-description">{game.description}</p>
           </div>
+        </div>
+
+        <div class="space-y-4 mt-8">
+          <h2 class="text-lg font-semibold text-slate-200 mb-2">Related games</h2>
+          {relatedGames.length === 0 ? (
+            <EmptyState text="No related games found yet." />
+          ) : (
+            <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {relatedGames.map((relatedGame) => (
+                <li>
+                  <a
+                    href={`/game/${relatedGame.id}`}
+                    class="block rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-200 transition-colors duration-200 hover:bg-slate-800 hover:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    data-testid={`related-game-link-${relatedGame.id}`}
+                  >
+                    {relatedGame.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div class="mt-8">
