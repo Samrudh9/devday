@@ -2,11 +2,11 @@
 import Menu from '../assets/icons/menu.svg';
 ---
 
-<header class="bg-blue-500 dark:bg-blue-700 text-white p-4 shadow-md transition-colors duration-300">
+<header class="bg-blue-700 text-white p-4 shadow-md transition-colors duration-300">
   <div class="container mx-auto flex justify-between items-center pl-4 pr-4">
     <div class="flex items-center">
       <div class="relative group">
-        <button id="menu-toggle" class="focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-500 rounded mr-4" aria-label="Toggle menu" aria-expanded="false" aria-controls="menu">
+        <button id="menu-toggle" class="focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-700 rounded mr-4" aria-label="Toggle menu" aria-expanded="false" aria-controls="menu" data-testid="menu-toggle">
           <Menu class="h-6 w-6" aria-hidden="true" />
         </button>
         <nav id="menu" aria-label="Main" class="hidden absolute left-0 mt-2 w-48 bg-white dark:bg-slate-800 text-slate-800 dark:text-white rounded shadow-lg z-10 transition-colors duration-300">
@@ -18,10 +18,63 @@ import Menu from '../assets/icons/menu.svg';
       </div>
       <div class="text-xl font-bold"><a href="/" class="hover:underline">Tailspin Toys</a></div>
     </div>
+    <button
+      id="contrast-toggle"
+      type="button"
+      class="rounded border border-white px-3 py-2 text-sm font-medium hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-700"
+      aria-label="Enable high contrast mode"
+      aria-pressed="false"
+      data-testid="contrast-toggle"
+    >
+      <span id="contrast-toggle-label">High Contrast: Off</span>
+    </button>
   </div>
 </header>
 
 <script>
+  const HIGH_CONTRAST_STORAGE_KEY = 'tailspin-high-contrast';
+  const contrastToggle = document.getElementById('contrast-toggle');
+  const contrastToggleLabel = document.getElementById('contrast-toggle-label');
+
+  const setHighContrastState = (enabled: boolean) => {
+    document.documentElement.classList.toggle('high-contrast', enabled);
+
+    if (contrastToggle) {
+      contrastToggle.setAttribute('aria-pressed', String(enabled));
+      contrastToggle.setAttribute(
+        'aria-label',
+        enabled ? 'Disable high contrast mode' : 'Enable high contrast mode',
+      );
+    }
+
+    if (contrastToggleLabel) {
+      contrastToggleLabel.textContent = enabled ? 'High Contrast: On' : 'High Contrast: Off';
+    }
+  };
+
+  const getStoredHighContrastPreference = () => {
+    try {
+      return window.localStorage.getItem(HIGH_CONTRAST_STORAGE_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  };
+
+  if (contrastToggle) {
+    setHighContrastState(getStoredHighContrastPreference());
+
+    contrastToggle.addEventListener('click', () => {
+      const isEnabled = !document.documentElement.classList.contains('high-contrast');
+      setHighContrastState(isEnabled);
+
+      try {
+        window.localStorage.setItem(HIGH_CONTRAST_STORAGE_KEY, String(isEnabled));
+      } catch {
+        // Ignore storage access errors.
+      }
+    });
+  }
+
   // Toggle menu visibility when hamburger is clicked
   const menuToggle = document.getElementById('menu-toggle');
   const menu = document.getElementById('menu');
